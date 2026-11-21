@@ -1,0 +1,36 @@
+{
+  "system_identifier": "7700716788417429547",
+  "baseline_fingerprint": "310b4f9319d50dde10d4815e7ae414dd",
+  "results": [
+    {
+      "id": "OFF-BAD-HOST",
+      "status": 404,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-GUEST",
+      "status": 401,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-CSRF-MISSING",
+      "status": 419,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "system_identifier": "7701014410365292590",
+  "policy_drop_detected": true,
+  "source_grant_detected": true,
+  "admin_session_authorization_actor_control": true,
+  "all_mutations_rolled_back": true,
+  "policy_restored": true,
+  "acl_restored": true,
+  "leads_fingerprint_before": "24fc8bf5941300066bd2e840078f1a8e",
+  "leads_fingerprint_after": "24fc8bf5941300066bd2e840078f1a8e"
+}

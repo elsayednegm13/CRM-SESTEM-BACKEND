@@ -1,0 +1,496 @@
+{
+  "system_identifier": "7700716788417429547",
+  "baseline_fingerprint": "310b4f9319d50dde10d4815e7ae414dd",
+  "results": [
+    {
+      "id": "OFF-BAD-HOST",
+      "status": 404,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-GUEST",
+      "status": 401,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-CSRF-MISSING",
+      "status": 419,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-WRONG-PASSWORD",
+      "status": 401,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-LOGIN-A1",
+      "status": 200,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-LIST-A1",
+      "status": 200,
+      "ids": [
+        "c0000001-0000-0000-0000-000000000001",
+        "c0000002-0000-0000-0000-000000000002",
+        "c0000004-0000-0000-0000-000000000004",
+        "c0000005-0000-0000-0000-000000000005",
+        "c0000006-0000-0000-0000-000000000006"
+      ],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-LOGIN-A2",
+      "status": 200,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-LIST-A2",
+      "status": 200,
+      "ids": [
+        "c0000002-0000-0000-0000-000000000002"
+      ],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-A2-ASSIGN-DENIED",
+      "status": 403,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-LOGIN-B1",
+      "status": 200,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-LIST-B1",
+      "status": 200,
+      "ids": [
+        "c0000003-0000-0000-0000-000000000003"
+      ],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-B1-SESSION-HOST-A",
+      "status": 401,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-LOGIN-A4",
+      "status": 200,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-LIST-A4",
+      "status": 200,
+      "ids": [
+        "c0000004-0000-0000-0000-000000000004"
+      ],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-SHOW-A4_ASSIGNED",
+      "status": 200,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-SHOW-A4_AUTHORED",
+      "status": 403,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-SHOW-A_UNASSIGNED",
+      "status": 403,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-A4-UPDATE-ALLOWED",
+      "status": 200,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-A4-UPDATE-DENIED",
+      "status": 403,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-A4-ASSIGN-DENIED",
+      "status": 403,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-A3-DENIED",
+      "status": 401,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-A1-ASSIGN-ALLOWED",
+      "status": 200,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "OFF-A4-SEES-REASSIGNED",
+      "status": 200,
+      "ids": [
+        "c0000004-0000-0000-0000-000000000004",
+        "c0000006-0000-0000-0000-000000000006"
+      ],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-BAD-HOST",
+      "status": 404,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-GUEST",
+      "status": 401,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-CSRF-MISSING",
+      "status": 419,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-WRONG-PASSWORD",
+      "status": 401,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-LOGIN-A1",
+      "status": 200,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-LIST-A1",
+      "status": 200,
+      "ids": [
+        "c0000001-0000-0000-0000-000000000001",
+        "c0000002-0000-0000-0000-000000000002",
+        "c0000004-0000-0000-0000-000000000004",
+        "c0000005-0000-0000-0000-000000000005",
+        "c0000006-0000-0000-0000-000000000006"
+      ],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-LOGIN-A2",
+      "status": 200,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-LIST-A2",
+      "status": 200,
+      "ids": [
+        "c0000002-0000-0000-0000-000000000002"
+      ],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-A2-ASSIGN-DENIED",
+      "status": 403,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-LOGIN-B1",
+      "status": 200,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-LIST-B1",
+      "status": 200,
+      "ids": [
+        "c0000003-0000-0000-0000-000000000003"
+      ],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-B1-SESSION-HOST-A",
+      "status": 401,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-LOGIN-A4",
+      "status": 200,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-LIST-A4",
+      "status": 200,
+      "ids": [
+        "c0000004-0000-0000-0000-000000000004"
+      ],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-SHOW-A4_ASSIGNED",
+      "status": 200,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-SHOW-A4_AUTHORED",
+      "status": 403,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-SHOW-A_UNASSIGNED",
+      "status": 403,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-A4-UPDATE-ALLOWED",
+      "status": 200,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-A4-UPDATE-DENIED",
+      "status": 403,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-A4-ASSIGN-DENIED",
+      "status": 403,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-A3-DENIED",
+      "status": 401,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-A1-ASSIGN-ALLOWED",
+      "status": 200,
+      "ids": [],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "id": "ON-A4-SEES-REASSIGNED",
+      "status": 200,
+      "ids": [
+        "c0000004-0000-0000-0000-000000000004",
+        "c0000006-0000-0000-0000-000000000006"
+      ],
+      "ok": true,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    }
+  ]
+}

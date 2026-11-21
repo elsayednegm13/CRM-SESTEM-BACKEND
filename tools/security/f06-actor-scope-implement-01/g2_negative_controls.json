@@ -1,0 +1,62 @@
+{
+  "system_identifier": "7700882006031409190",
+  "before": "d4bb1b7937ec70a96f4b7f13b929d9e9",
+  "after": "d4bb1b7937ec70a96f4b7f13b929d9e9",
+  "results": [
+    {
+      "id": "ROLE_PERMISSION_INSERT",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "ROLE_PERMISSION_DELETE",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "ROLE_STATUS_UPDATE",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "MEMBERSHIP_STATUS_UPDATE",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "MEMBERSHIP_ROLE_INSERT",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "MEMBERSHIP_ROLE_REVOKE",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "DIRECT_GRANT_INSERT",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "DIRECT_GRANT_REVOKE",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "PERMISSION_CATALOG_UPDATE",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "ROLE_GRANT",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "SCHEMA_CREATE",
+      "rc": 3,
+      "sqlstate": "42501"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "system_identifier": "7700986034630172718",
+  "positive": {
+    "rc": 0,
+    "sqlstate": null,
+    "lines": [
+      "aaaaaaa5-0000-0000-0000-000000000005",
+      "daleel_f06team01_actor_a5|daleel_f06team01_actor_a5",
+      "11111111-1111-1111-1111-111111111111|a1111111-0000-0000-0000-00000000a005|aaaaaaa5-0000-0000-0000-000000000005",
+      "{SELF}"
+    ]
+  },
+  "negative_results": [
+    {
+      "id": "SELF_GRANT_INSERT",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "DIRECT_GRANT_UPDATE",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "DIRECT_GRANT_DELETE",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "ROLE_PERMISSION_INSERT",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "ROLE_STATUS_UPDATE",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "MEMBERSHIP_STATUS_UPDATE",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "MEMBERSHIP_ROLE_INSERT",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "PERMISSION_METADATA_UPDATE",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "SET_ROLE_LEGACY",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "SET_ROLE_NARROW",
+      "rc": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "id": "SET_ROLE_A1",
+      "rc": 3,
+      "sqlstate": "42501"
+    }
+  ],
+  "authority_fingerprint_before": "1ba1354d6bcc85583e70339c379141aa",
+  "authority_fingerprint_after": "1ba1354d6bcc85583e70339c379141aa",
+  "membership_options": "f|t|f",
+  "effective_acl": "f|f|f|t"
+}

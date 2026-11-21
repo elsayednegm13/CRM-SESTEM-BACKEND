@@ -1,0 +1,25 @@
+# Durable security audit (Control 10A)
+
+`security_audit_events` is the sole durable security/control-plane fact. Structured `auth.security`, `tenant.security` and `tenant.authorization` logs remain diagnostics and are not evidence of a committed state change. Control 10B adds provider identity and provider audit facts to this ledger. There is no public audit read or mutation API, outbox, worker delivery or retention purge.
+
+## Write boundary
+
+`SecurityAuditWriter` accepts fixed `AuditEventType` values and canonical UUID targets; tenant writes use server-owned `TenantContext`, and provider writes use the server-derived provider identity and explicit provider connection/transaction. No controller-supplied actor or unconstrained metadata enters it. Each existing role/membership mutation writes its audit row after the invariant check and before the guarded PostgreSQL transaction commits. Provider MFA enrollment/recovery use and approval mutations also audit before their own transaction commits. Control 10C provisioning, recovery, approval and founder-activation facts use typed writer methods on the same caller-owned PostgreSQL connection/transaction; the small set of event-specific UUID metadata shapes is validated by the enum before insertion. If insertion fails, state, grants and authorization versions roll back. The local/testing disposable Company Admin bootstrap writes a SYSTEM fact in its own transaction. The internal global-disable service writes a SYSTEM fact because it currently has no caller identity or public route; a future provider-triggered disable must use a real provider actor instead.
+
+The backend generates UUIDv7 IDs. The database generates one `occurred_at timestamptz` at synchronous insertion; there is no redundant `created_at`. Event metadata is fixed per event: role-grant edits store only `changed_fields=["grants"]`, membership status events store only the bounded before/after status pair, provisioning/founder events store only their required UUID reference, recovery stores only successor and optional compromised-membership UUIDs, and the other current events store `{}`. PostgreSQL also rejects non-object/oversized/unrecognized metadata and mismatched current event target types/UUIDs, including secret-key payloads. No request body, email, password, token, cookie, signed URL or full model snapshot is stored.
+
+Committed mutation events are `SUCCESS` only. Denied/pre-mutation attempts remain structured diagnostic logs until a separately reviewed durable attempt channel can commit independently of rolled-back business transactions. They are not falsely reported as committed state facts. Current internal services lack authoritative operation IDs, so one successful invocation writes one fact; future retry deduplication must bind to a real operation record rather than a weak audit uniqueness rule.
+
+## Database boundary
+
+Audit RLS is ENABLE and FORCE. Each ordinary API runtime role needs `INSERT` only, and no SELECT/UPDATE/DELETE or table ownership. The tenant INSERT policy checks transaction-local `TENANT` mode, current server-bound user and tenant IDs, permitted tenant event class and `INTERNAL` channel; it never permits `PROVIDER_USER`. The provider INSERT policy checks `PROVIDER` mode and server-bound provider UUID and never permits tenant facts. A narrow internal `user.disabled` SYSTEM branch binds the target user to the current server-owned discovery/tenant context. Provider actor IDs have no FK to tenant `users`. The optional tenant FK is RESTRICT, never CASCADE; tenant archive does not erase audit.
+
+Future provider actions, service/system event producers and audit readers require separately reviewed identities, roles/policies and writer/read methods. A nullable `tenant_id` is not globally readable. There is no ordinary audit SELECT policy. PostgreSQL custom GUCs are application-controlled; parameterization and preventing arbitrary SQL remain mandatory. Migration owner/superuser access is exceptional and is not append-only runtime proof.
+
+## Deployment and restore
+
+The 10A disposable proof manually granted `INSERT` on this table to a non-owner runtime role after migrations. Production needs a version-controlled, secret-free role/grant artifact and drift verifier from a later control. `migrate:fresh` recreates tables and removes grants; reapply and verify them after schema deployment.
+
+Before opening restored traffic verify the audit table and migration version, RLS ENABLE/FORCE, exact INSERT policy, runtime role flags/ownership, INSERT-only grant, absence of SELECT/UPDATE/DELETE, authorized audit readability, plausible event counts/time range, and no archive cascade. Backups must include audit. Exact retention, residency, legal purge and future immutable sink/hash-chain remain owner policy or later hardening. There is no automatic purge in 10A.
+
+Indexes are limited to `occurred_at` and `(tenant_id, occurred_at)` for chronological and tenant-scoped authorized inspection. More indexes, JSONB GIN and partitioning require measured access/write volume.

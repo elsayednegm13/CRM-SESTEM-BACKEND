@@ -1,0 +1,796 @@
+openapi: 3.1.0
+info:
+  title: Daleel CRM API
+  version: 1.0.0
+  description: >-
+    Versioned API contract for health, tenant identity, company context, and the
+    separate provider MFA session. No public provider registration, provider reset,
+    Personal Access Token endpoints are exposed. The V1 provider company route is
+    direct and requires an authenticated MFA and step-up session. CORE-01 V1
+    mutation routes are currently closed by the G2 security gate (503).
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development
+  - url: http://localhost:8000
+    description: Local server root for Sanctum CSRF bootstrap
+paths:
+  /super/setup/status:
+    post:
+      operationId: providerFirstInstallSetupStatus
+      summary: Check protected one-time fresh-install setup availability
+      description: >-
+        Not public registration. Disabled by default. Requires exact Provider Host/Origin,
+        an attached stateful session and a valid CSRF token even for direct API requests.
+        HTTPS is required except explicitly enabled local loopback HTTP. Configuration
+        must contain a server-only 64-hex secret and an explicit future epoch expiry
+        no more than 3600 seconds away. AVAILABLE also requires a migration-attested
+        unsealed singleton and zero provider users, checked under a transaction lock.
+        Inserts into any of the seven migration-attested tables permanently seal
+        eligibility through narrow marker-only row triggers. No secret is submitted
+        to or returned by status; status does not consume the global creation quota.
+        Both setup routes have throttle:5,60 per-IP protection.
+        All responses use meta.request_id and Cache-Control private, no-store.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: false, maxProperties: 0 }
+      responses:
+        '200':
+          description: Setup is currently available; not a reservation or authorization proof.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [data, meta]
+                properties:
+                  data:
+                    type: object
+                    additionalProperties: false
+                    required: [state]
+                    properties:
+                      state: { type: string, const: AVAILABLE }
+                  meta:
+                    type: object
+                    required: [request_id]
+                    properties:
+                      request_id: { type: string, format: uuid }
+        '403': { description: PROVIDER_SETUP_DISABLED or existing Host/Origin denial. }
+        '409': { description: PROVIDER_SETUP_UNAVAILABLE; sealed, missing marker, populated install or unreadable persistence. }
+        '419': { description: No attached session or invalid CSRF token; no exemptions or Fetch-Site shortcut. }
+        '422': { description: PROVIDER_SETUP_INPUT_INVALID; JSON empty object required. }
+        '429': { description: Existing per-IP route throttle exhausted; status does not spend global creation quota. }
+  /super/setup:
+    post:
+      operationId: providerFirstInstallSetup
+      summary: Create and permanently seal the first Provider account
+      description: >-
+        Same Host/Origin, CSRF, transport, configuration and rate boundaries as status.
+        The submitted bootstrap_secret must match in constant time before Provider data
+        access. Only valid-secret creation attempts spend the global 20/hour cache
+        counter, before identity validation; invalid secrets spend no global quota
+        and remain subject to the existing per-IP throttle. Identity validation uses
+        the existing email normalizer. Password requires
+        14-72 UTF-8 bytes, lower and upper case, a number and a symbol, plus confirmation;
+        no external compromised-password lookup is performed. The singleton lock, empty
+        Provider recheck, active capability check, hashed account, all active capability
+        grants, existing self-attributed team-created audit and permanent seal share one
+        Provider transaction. The marker is sealed before account insertion; failure
+        rolls back the early seal, account, grants and audit together. All seven
+        attested-table insert hooks serialize population against the same marker;
+        the fixed no-argument definer only seals, never reads/creates/authenticates.
+        No session, MFA assertion or authority receipt is issued.
+        Continue through existing login; MFA can be enabled later from authenticated Security Settings. No reset, transfer,
+        recovery or replacement of an existing account is possible through this route.
+        All responses use meta.request_id and Cache-Control private, no-store.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [bootstrap_secret, email, password, password_confirmation]
+              properties:
+                bootstrap_secret: { type: string, format: password, writeOnly: true, pattern: '^[0-9a-fA-F]{64}$' }
+                email: { type: string, format: email, maxLength: 254, writeOnly: true }
+                password:
+                  type: string
+                  format: password
+                  writeOnly: true
+                  description: 14-72 UTF-8 bytes; mixed case, number and symbol; no NUL.
+                password_confirmation: { type: string, format: password, writeOnly: true }
+      responses:
+        '201':
+          description: Created, sealed and unauthenticated; no account ID, email, password or session in the response.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [data, meta]
+                properties:
+                  data:
+                    type: object
+                    additionalProperties: false
+                    required: [status, next]
+                    properties:
+                      status: { type: string, const: created }
+                      next: { type: string, const: LOGIN_AVAILABLE }
+
+                  meta:
+                    type: object
+                    required: [request_id]
+                    properties:
+                      request_id: { type: string, format: uuid }
+        '403': { description: PROVIDER_SETUP_DISABLED; disabled, invalid/expired config or invalid/missing setup secret; also existing Host/Origin denial. }
+        '409': { description: PROVIDER_SETUP_UNAVAILABLE; already sealed, existing provider, missing marker/capability, replay or transaction failure. }
+        '419': { description: No attached session or invalid CSRF token. }
+        '422': { description: PROVIDER_SETUP_INPUT_INVALID; safe JSON error, no old-input session flash. }
+        '429': { description: Existing route throttle or global setup counter exhausted. }
+  /super/companies:
+    post:
+      operationId: provisionCompanyV1
+      summary: Create a company and a pending first administrator directly
+      description: >-
+        SECURITY GATE CLOSED: currently returns 503 CORE01_SECURITY_GATE_CLOSED.
+        The contract below describes the suspended implementation, not an enabled service.
+        Trusted Provider origin only. Requires a provider session with enrolled MFA,
+        recent step-up, company.provision capability, CSRF, and Idempotency-Key.
+        The tenant, hostname, pending first administrator, role template, operation
+        result, and success audit share one PostgreSQL transaction. No approval
+        request is created. Same-key same-payload replay returns the saved result.
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: { type: string, minLength: 16, maxLength: 128 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [display_name, slug, timezone, first_admin_email, first_admin_display_name, initial_password]
+              properties:
+                display_name: { type: string, maxLength: 160 }
+                slug: { type: string, maxLength: 100 }
+                timezone: { type: string }
+                first_admin_email: { type: string, format: email, maxLength: 254 }
+                first_admin_display_name: { type: string, maxLength: 160 }
+                initial_password: { type: string, minLength: 12, maxLength: 1024, format: password }
+      responses:
+        '201': { description: Company created with first administrator pending password change. }
+        '200': { description: Authorized idempotent replay of the same canonical payload. }
+        '401': { description: Provider authentication or MFA required. }
+        '403': { description: Origin, capability, or recent step-up denied. }
+        '409': { description: Idempotency payload or unique host conflict. }
+        '419': { description: CSRF verification failed. }
+        '422': { description: Invalid input or unsupported field. }
+        '503': { description: CORE01_SECURITY_GATE_CLOSED until G2 is corrected and accepted. }
+  /auth/first-admin/activate:
+    post:
+      operationId: activateFirstAdministratorV1
+      summary: Suspended first administrator password activation
+      description: >-
+        Currently returns 503 CORE01_SECURITY_GATE_CLOSED. The suspended flow
+        checks the initial password and rotates it before assigning the first
+        administrator role; it creates no authenticated session itself.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, initial_password, new_password]
+              properties:
+                email: { type: string, format: email }
+                initial_password: { type: string, format: password }
+                new_password: { type: string, format: password, minLength: 12 }
+      responses:
+        '200': { description: Historical sandbox result only; route is closed. }
+        '401': { description: Initial credentials invalid. }
+        '419': { description: CSRF verification failed. }
+        '503': { description: CORE01_SECURITY_GATE_CLOSED. }
+  /sanctum/csrf-cookie:
+    get:
+      servers:
+        - url: http://localhost:8000
+      operationId: sanctumCsrfBootstrap
+      summary: Bootstrap the stateful SPA CSRF cookie
+      description: Call before browser login and state-changing requests; send the readable XSRF-TOKEN cookie value in X-XSRF-TOKEN and include credentials.
+      responses:
+        '204':
+          description: CSRF and session cookies were initialized.
+          headers:
+            Set-Cookie:
+              description: Host-only session cookie (HttpOnly) and readable XSRF-TOKEN cookie.
+              schema: { type: string }
+  /:
+    get:
+      operationId: apiV1Index
+      summary: API v1 availability
+      responses:
+        '200':
+          description: API v1 boundary is available.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessEnvelope' }
+  /health:
+    get:
+      operationId: getFoundationHealth
+      summary: Aggregated foundation status
+      responses:
+        '200':
+          description: Healthy or degraded foundation status.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessEnvelope' }
+  /health/live:
+    get:
+      operationId: getLiveness
+      summary: Process liveness without dependency checks
+      responses:
+        '200':
+          description: Application process is alive.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessEnvelope' }
+  /health/ready:
+    get:
+      operationId: getReadiness
+      summary: Read-only dependency readiness
+      responses:
+        '200':
+          description: Dependencies configured and healthy.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessEnvelope' }
+        '503':
+          description: A dependency is degraded or not configured.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessEnvelope' }
+  /auth/login:
+    post:
+      operationId: login
+      summary: Start a first-party browser session
+      description: >-
+        Call GET /sanctum/csrf-cookie first; retain its host-bound HttpOnly login-client
+        proof, then send X-XSRF-TOKEN, credentials, and a fresh UUIDv4
+        Idempotency-Key. Retry an ACK-lost logical attempt with the same key only
+        after refreshing CSRF; password and live tenant authority are rechecked.
+        A new attempt or device uses a new key. Unknown, disabled, and
+        wrong-password identities share the same 401 response.
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema:
+            type: string
+            format: uuid
+            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, maxLength: 1024 }
+                password: { type: string, maxLength: 1024, format: password }
+      responses:
+        '200':
+          description: Session started and rotated.
+          headers:
+            Set-Cookie: { $ref: '#/components/headers/SessionCookie' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IdentityEnvelope' }
+        '401': { $ref: '#/components/responses/AuthInvalidCredentials' }
+        '409': { description: Attempt binding expired, revoked, rotated, or conflicts with the verified host, client, or identity. }
+        '419': { $ref: '#/components/responses/CsrfFailure' }
+        '422': { $ref: '#/components/responses/ValidationFailure' }
+        '429': { $ref: '#/components/responses/AuthRateLimit' }
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: End the current server-side session
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Session invalidated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '419': { $ref: '#/components/responses/CsrfFailure' }
+  /auth/me:
+    get:
+      operationId: currentIdentity
+      summary: Read the current global identity
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Current global identity.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IdentityEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+  /auth/forgot-password:
+    post:
+      operationId: requestPasswordReset
+      summary: Request password recovery instructions
+      description: Returns the same accepted response for eligible and unknown identities.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, maxLength: 1024 }
+      responses:
+        '202': { description: Accepted without confirming account existence. }
+        '419': { $ref: '#/components/responses/CsrfFailure' }
+        '422': { $ref: '#/components/responses/ValidationFailure' }
+        '429': { $ref: '#/components/responses/AuthRateLimit' }
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      summary: Set a new password with a one-time reset token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, token, password, password_confirmation]
+              properties:
+                email: { type: string }
+                token: { type: string }
+                password: { type: string, minLength: 12, maxLength: 1024, format: password }
+                password_confirmation: { type: string, format: password }
+      responses:
+        '200': { description: Password reset; prior sessions are revoked. }
+        '419': { $ref: '#/components/responses/CsrfFailure' }
+        '422': { $ref: '#/components/responses/ValidationFailure' }
+        '429': { $ref: '#/components/responses/AuthRateLimit' }
+  /auth/email/verification-notification:
+    post:
+      operationId: resendEmailVerification
+      summary: Resend verification instructions for the current identity
+      security: [{ sessionCookie: [] }]
+      responses:
+        '202': { description: Accepted without exposing verification state. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '419': { $ref: '#/components/responses/CsrfFailure' }
+        '429': { $ref: '#/components/responses/AuthRateLimit' }
+  /auth/email/verify/{id}/{hash}:
+    get:
+      operationId: verifyEmail
+      summary: Verify the current identity using a signed, expiring link
+      description: URL signature, authenticated identity, route identity, and email hash must all match.
+      security: [{ sessionCookie: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: path
+          name: hash
+          required: true
+          schema: { type: string }
+        - in: query
+          name: expires
+          required: true
+          schema: { type: integer }
+        - in: query
+          name: signature
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Email is verified; repeated valid links are idempotent. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '422': { description: The signed link is invalid or expired. }
+  /company/context:
+    get:
+      operationId: getCompanyContext
+      summary: Resolve the sole active company of the authenticated identity
+      description: >-
+        The backend derives company from the authenticated user's sole ACTIVE
+        membership and requires an ACTIVE tenant. No client company selector is
+        accepted. X-Tenant-ID is rejected; tenant_id query/body input is invalid.
+        The response grants no role or business permission.
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Server-resolved company and membership context.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CompanyContextEnvelope' }
+        '400': { description: TENANT_SELECTOR_NOT_ALLOWED; safe error envelope. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { description: TENANT_MEMBERSHIP_REQUIRED, TENANT_CONTEXT_INTEGRITY_ERROR, or TENANT_UNAVAILABLE. }
+        '422': { $ref: '#/components/responses/ValidationFailure' }
+  /company/authorization:
+    get:
+      operationId: getCompanyAuthorization
+      summary: Current company membership roles and effective grants
+      description: Server-resolved tenant only; no client role or tenant selector is accepted. TEAM and NONE do not authorize resources.
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Current authorization snapshot with membership_id, authorization_version, roles, grants, and request_id.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { description: Company membership or authorization denied; safe error envelope. }
+  /company/roles:
+    get:
+      operationId: listCompanyRoles
+      summary: List active roles in the current company
+      description: Requires role.view from the authenticated membership. Results cannot cross the current company.
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200':
+          description: Current-company active role IDs, names, and versions in the standard success envelope.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SuccessEnvelope' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { description: AUTHORIZATION_DENIED or safe tenant-access error envelope. }
+  /super/auth/login:
+    post:
+      operationId: providerLogin
+      summary: Start a pending provider password challenge
+      description: Requires exact provider Origin, CSRF cookie and X-XSRF-TOKEN. A password never creates a full provider session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [email, password], properties: { email: { type: string }, password: { type: string, format: password } } }
+      responses:
+        '200': { description: AUTHENTICATED or MFA_REQUIRED in the standard envelope; private, no-store. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '419': { $ref: '#/components/responses/CsrfFailure' }
+        '429': { $ref: '#/components/responses/AuthRateLimit' }
+  /super/auth/mfa/enroll/start:
+    post:
+      operationId: providerMfaEnrollmentStart
+      summary: Issue a one-time TOTP enrollment secret for a pending provider challenge
+      responses:
+        '200': { description: Secret and otpauth_uri shown once; private, no-store. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '419': { $ref: '#/components/responses/CsrfFailure' }
+  /super/auth/mfa/enroll/confirm:
+    post:
+      operationId: providerMfaEnrollmentConfirm
+      summary: Confirm TOTP, return one-time recovery codes, and complete provider login
+      responses:
+        '200': { description: Authenticated provider session and one-time recovery codes; private, no-store. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '419': { $ref: '#/components/responses/CsrfFailure' }
+  /super/auth/mfa/verify:
+    post:
+      operationId: providerMfaVerify
+      summary: Complete a pending provider challenge with TOTP or one recovery code
+      responses:
+        '200': { description: Authenticated provider session; private, no-store. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '419': { $ref: '#/components/responses/CsrfFailure' }
+  /super/auth/mfa/settings:
+    get:
+      operationId: providerMfaSettingsStatus
+      summary: Return the authenticated Provider account MFA enrollment state
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: NOT_ENROLLED or ENROLLED only; private, no-store. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+  /super/auth/mfa/settings/enroll/start:
+    post:
+      operationId: providerMfaSettingsEnrollmentStart
+      summary: Reauthenticate and issue a short-lived session-bound TOTP setup secret
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [password], properties: { password: { type: string, format: password } } }
+      responses:
+        '200': { description: Secret and otpauth_uri are one-time setup material; private, no-store. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '419': { $ref: '#/components/responses/CsrfFailure' }
+        '429': { $ref: '#/components/responses/AuthRateLimit' }
+  /super/auth/mfa/settings/enroll/confirm:
+    post:
+      operationId: providerMfaSettingsEnrollmentConfirm
+      summary: Confirm genuine TOTP, return recovery codes once, revoke the current session, and require reauthentication
+      security: [{ sessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [code], properties: { code: { type: string, pattern: '^[0-9]{6}$' } } }
+      responses:
+        '200': { description: REAUTHENTICATION_REQUIRED with one-time recovery_codes; private, no-store. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '419': { $ref: '#/components/responses/CsrfFailure' }
+        '429': { $ref: '#/components/responses/AuthRateLimit' }
+  /super/auth/step-up:
+    post:
+      operationId: providerStepUp
+      summary: Refresh provider step-up with password and fresh MFA factor
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Ten-minute step-up freshness; private, no-store. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '419': { $ref: '#/components/responses/CsrfFailure' }
+  /super/auth/logout:
+    post:
+      operationId: providerLogout
+      summary: End the provider guard and rotate the session
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Provider guard logged out. }
+        '419': { $ref: '#/components/responses/CsrfFailure' }
+  /super/auth/me:
+    get:
+      operationId: providerMe
+      summary: Current authenticated Provider identity and session expiry; high-risk actions still require a genuine MFA-backed step-up
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Provider identity and session status; private, no-store. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+  /super/auth/authorization:
+    get:
+      operationId: providerAuthorization
+      summary: Fresh provider capability list
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Current provider capabilities; private, no-store. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+  /super/approvals:
+    get:
+      operationId: providerApprovalRead
+      summary: Capability-protected provider approval read foundation
+      description: Requires provider.approval.review. No approval mutation route exists in 10B.
+      security: [{ sessionCookie: [] }]
+      responses:
+        '200': { description: Provider approval list; private, no-store. }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { description: PROVIDER_AUTHORIZATION_DENIED in the standard error envelope. }
+  /company/customers:
+    get:
+      operationId: listCustomers
+      summary: List tenant-bound customers
+      parameters:
+        - { in: query, name: search, schema: { type: string, maxLength: 100 } }
+        - { in: query, name: status, schema: { type: string, enum: [ACTIVE, INACTIVE] }, description: Optional lifecycle filter; omit to include both. }
+        - { in: query, name: page, schema: { type: integer, minimum: 1 } }
+        - { in: query, name: per_page, schema: { type: integer, minimum: 1, maximum: 100 } }
+      responses:
+        '200': { $ref: '#/components/responses/CustomerSuccess' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      operationId: createCustomer
+      summary: Create a tenant-bound customer
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CustomerInput' } } } }
+      responses:
+        '201': { $ref: '#/components/responses/CustomerSuccess' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '419': { $ref: '#/components/responses/CsrfFailure' }
+        '422': { $ref: '#/components/responses/ValidationFailure' }
+  /company/customers/{customer}:
+    parameters: [ { in: path, name: customer, required: true, schema: { type: string, format: uuid } } ]
+    get:
+      operationId: getCustomer
+      summary: Get a customer with contacts and addresses in the current tenant
+      responses: { '200': { $ref: '#/components/responses/CustomerSuccess' }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' }, '404': { $ref: '#/components/responses/NotFound' } }
+    patch:
+      operationId: updateCustomer
+      summary: Update a tenant-bound customer
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CustomerInput' } } } }
+      responses: { '200': { $ref: '#/components/responses/CustomerSuccess' }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' }, '404': { $ref: '#/components/responses/NotFound' }, '419': { $ref: '#/components/responses/CsrfFailure' }, '422': { $ref: '#/components/responses/ValidationFailure' } }
+  /company/customers/{customer}/contacts:
+    post:
+      operationId: createCustomerContact
+      summary: Create a contact under a customer in the current tenant
+      parameters: [ { in: path, name: customer, required: true, schema: { type: string, format: uuid } } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ContactInput' } } } }
+      responses: { '201': { $ref: '#/components/responses/CustomerSuccess' }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' }, '404': { $ref: '#/components/responses/NotFound' }, '419': { $ref: '#/components/responses/CsrfFailure' }, '422': { $ref: '#/components/responses/ValidationFailure' } }
+    get:
+      operationId: listCustomerContacts
+      summary: List contacts for a current-tenant customer
+      parameters: [ { in: path, name: customer, required: true, schema: { type: string, format: uuid } } ]
+      responses: { '200': { $ref: '#/components/responses/CustomerSuccess' }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' }, '404': { $ref: '#/components/responses/NotFound' } }
+  /company/customers/{customer}/addresses:
+    post:
+      operationId: createCustomerAddress
+      summary: Create an address under a customer in the current tenant
+      parameters: [ { in: path, name: customer, required: true, schema: { type: string, format: uuid } } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AddressInput' } } } }
+      responses: { '201': { $ref: '#/components/responses/CustomerSuccess' }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' }, '404': { $ref: '#/components/responses/NotFound' }, '419': { $ref: '#/components/responses/CsrfFailure' }, '422': { $ref: '#/components/responses/ValidationFailure' } }
+    get:
+      operationId: listCustomerAddresses
+      summary: List addresses for a current-tenant customer
+      parameters: [ { in: path, name: customer, required: true, schema: { type: string, format: uuid } } ]
+      responses: { '200': { $ref: '#/components/responses/CustomerSuccess' }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' }, '404': { $ref: '#/components/responses/NotFound' } }
+  /company/customers/{customer}/contacts/{contact}:
+    patch:
+      operationId: updateCustomerContact
+      summary: Update a contact under a current-tenant customer
+      parameters: [ { in: path, name: customer, required: true, schema: { type: string, format: uuid } }, { in: path, name: contact, required: true, schema: { type: string, format: uuid } } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ContactInput' } } } }
+      responses: { '200': { $ref: '#/components/responses/CustomerSuccess' }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' }, '404': { $ref: '#/components/responses/NotFound' }, '419': { $ref: '#/components/responses/CsrfFailure' }, '422': { $ref: '#/components/responses/ValidationFailure' } }
+  /company/customers/{customer}/addresses/{address}:
+    patch:
+      operationId: updateCustomerAddress
+      summary: Update an address under a current-tenant customer
+      parameters: [ { in: path, name: customer, required: true, schema: { type: string, format: uuid } }, { in: path, name: address, required: true, schema: { type: string, format: uuid } } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AddressInput' } } } }
+      responses: { '200': { $ref: '#/components/responses/CustomerSuccess' }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' }, '404': { $ref: '#/components/responses/NotFound' }, '419': { $ref: '#/components/responses/CsrfFailure' }, '422': { $ref: '#/components/responses/ValidationFailure' } }
+  /company/leads/{lead}/convert:
+    post:
+      operationId: convertLeadToCustomer
+      summary: Convert a lead once without changing its pipeline stage or creating a deal
+      parameters: [ { in: path, name: lead, required: true, schema: { type: string, format: uuid } } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [customer], properties: { customer: { $ref: '#/components/schemas/CustomerInput' }, contact: { $ref: '#/components/schemas/ContactInput' } } } } } }
+      responses: { '201': { $ref: '#/components/responses/CustomerSuccess' }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' }, '404': { $ref: '#/components/responses/NotFound' }, '409': { description: Existing conversion or tenant-local duplicate candidate; no automatic merge. }, '419': { $ref: '#/components/responses/CsrfFailure' }, '422': { $ref: '#/components/responses/ValidationFailure' } }
+  /company/pipelines:
+    get: { operationId: listSalesPipelines, summary: List current-tenant sales pipelines and stages, responses: { '200': { description: Pipeline list }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' } } }
+    post: { operationId: createSalesPipeline, summary: Create a current-tenant pipeline, responses: { '201': { description: Pipeline created }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' }, '419': { $ref: '#/components/responses/CsrfFailure' }, '422': { $ref: '#/components/responses/ValidationFailure' } } }
+  /company/deals:
+    get: { operationId: listDeals, summary: List tenant-bound deals, responses: { '200': { description: Paginated deal list }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' } } }
+    post: { operationId: createDeal, summary: Create a tenant-bound deal, responses: { '201': { description: Deal created }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' }, '419': { $ref: '#/components/responses/CsrfFailure' }, '422': { $ref: '#/components/responses/ValidationFailure' } } }
+  /company/deals/{deal}/transition:
+    post: { operationId: transitionDeal, summary: Move an open deal with an optimistic version, responses: { '200': { description: Transition applied }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' }, '409': { description: Current version or stage changed }, '419': { $ref: '#/components/responses/CsrfFailure' }, '422': { $ref: '#/components/responses/ValidationFailure' } } }
+  /company/tasks:
+    get: { operationId: listSalesTasks, summary: List tenant-bound tasks and follow-ups, responses: { '200': { description: Paginated task list }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' } } }
+    post: { operationId: createSalesTask, summary: Create a task for exactly one customer or deal, responses: { '201': { description: Task created }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' }, '419': { $ref: '#/components/responses/CsrfFailure' }, '422': { $ref: '#/components/responses/ValidationFailure' } } }
+  /company/tasks/{task}/complete:
+    post: { operationId: completeSalesTask, summary: Mark a tenant-bound task complete, responses: { '200': { description: Task completed }, '401': { $ref: '#/components/responses/Unauthenticated' }, '403': { $ref: '#/components/responses/Forbidden' }, '404': { $ref: '#/components/responses/NotFound' }, '419': { $ref: '#/components/responses/CsrfFailure' } } }
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: daleel-crm-api-session
+      description: HttpOnly server-side session cookie. Use Sanctum CSRF bootstrap for state-changing requests.
+  headers:
+    SessionCookie:
+      description: Host-only, HttpOnly, SameSite=Lax session cookie; Secure is enabled outside local HTTP.
+      schema: { type: string }
+  schemas:
+    Meta:
+      type: object
+      required: [request_id]
+      properties:
+        request_id: { type: string, format: uuid }
+    SuccessEnvelope:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { type: object }
+        meta: { $ref: '#/components/schemas/Meta' }
+    Identity:
+      type: object
+      required: [id, email, email_verified_at]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        email_verified_at: { type: [string, 'null'], format: date-time }
+    IdentityEnvelope:
+      type: object
+      required: [data, meta]
+      properties:
+        data: { $ref: '#/components/schemas/Identity' }
+        meta: { $ref: '#/components/schemas/Meta' }
+    CompanyContextEnvelope:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [company, membership]
+          properties:
+            company:
+              type: object
+              required: [id, display_name, slug, timezone, default_locale]
+              properties:
+                id: { type: string, format: uuid }
+                display_name: { type: string }
+                slug: { type: string }
+                timezone: { type: string }
+                default_locale: { type: string }
+            membership:
+              type: object
+              required: [id, status]
+              properties:
+                id: { type: string, format: uuid }
+                status: { type: string, enum: [ACTIVE] }
+        meta: { $ref: '#/components/schemas/Meta' }
+    ErrorEnvelope:
+      type: object
+      required: [error, meta]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+        meta: { $ref: '#/components/schemas/Meta' }
+    CustomerInput:
+      type: object
+      required: [type, display_name]
+      properties:
+        type: { type: string, enum: [PERSON, ORGANIZATION] }
+        display_name: { type: string, maxLength: 160 }
+        legal_name: { type: [string, 'null'], maxLength: 200 }
+        email: { type: [string, 'null'], format: email, maxLength: 254 }
+        phone: { type: [string, 'null'], maxLength: 32 }
+        country_code: { type: [string, 'null'], pattern: '^[A-Z]{2}$' }
+    ContactInput:
+      type: object
+      required: [display_name]
+      properties:
+        display_name: { type: string, maxLength: 160 }
+        email: { type: [string, 'null'], format: email, maxLength: 254 }
+        phone: { type: [string, 'null'], maxLength: 32 }
+        job_title: { type: [string, 'null'], maxLength: 120 }
+        note: { type: [string, 'null'], maxLength: 1000 }
+        is_primary: { type: boolean }
+    AddressInput:
+      type: object
+      required: [line1]
+      properties:
+        kind: { type: string, enum: [GENERAL, BILLING, SHIPPING] }
+        line1: { type: string, maxLength: 200 }
+        line2: { type: [string, 'null'], maxLength: 200 }
+        city: { type: [string, 'null'], maxLength: 100 }
+        region: { type: [string, 'null'], maxLength: 100 }
+        postal_code: { type: [string, 'null'], maxLength: 32 }
+        country_code: { type: [string, 'null'], pattern: '^[A-Z]{2}$' }
+  responses:
+    CustomerSuccess:
+      description: Customer, contact, address, or conversion response in the standard envelope.
+      content: { application/json: { schema: { $ref: '#/components/schemas/SuccessEnvelope' } } }
+    Forbidden:
+      description: The current tenant-staff context lacks the required permission.
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorEnvelope' } } }
+    NotFound:
+      description: The requested resource is unavailable in the current tenant.
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorEnvelope' } } }
+    AuthInvalidCredentials:
+      description: Email or password is incorrect.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    Unauthenticated:
+      description: Authentication is required or the session was revoked.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    CsrfFailure:
+      description: CSRF token is missing or invalid.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    ValidationFailure:
+      description: Request validation failed.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }
+    AuthRateLimit:
+      description: Authentication-specific request limit was exceeded.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorEnvelope' }

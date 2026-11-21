@@ -1,0 +1,22 @@
+{
+  "control": "SECURITY-F06-API-ADMIN-COMPACT-01",
+  "container": "daleel-f06-compact01-44e1ef49-pg",
+  "system_identifier": "7701014410365292590",
+  "port": 55481,
+  "full_data_fingerprint_before": "f89318f94ce52837ab4556e2d406449b",
+  "full_data_fingerprint_after": "f89318f94ce52837ab4556e2d406449b",
+  "full_data_fingerprint_restored": true,
+  "catalog": {
+    "migration_count": "38",
+    "role_set_options": "daleel_f06i02_actor_a1:daleel_f06scope_actor_runtime:false|daleel_f06i02_actor_a2:daleel_f06scope_actor_runtime:false|daleel_f06i02_actor_b1:daleel_f06scope_actor_runtime:false|daleel_f06i03_actor_a4:daleel_f06scope_actor_runtime:false|daleel_f06team01_actor_a5:daleel_f06scope_actor_runtime:false",
+    "role_membership_closure": "daleel_f06i02_actor_a1:daleel_f06scope_actor_runtime:false|daleel_f06i02_actor_a2:daleel_f06scope_actor_runtime:false|daleel_f06i02_actor_b1:daleel_f06scope_actor_runtime:false|daleel_f06i03_actor_a4:daleel_f06scope_actor_runtime:false|daleel_f06team01_actor_a5:daleel_f06scope_actor_runtime:false",
+    "function_catalog": "f06scope_assign_lead:daleel_f06scope_assigner:true:search_path=pg_catalog, public, pg_temp:false\nf06team01_direct_permission:daleel_f06team01_admin_executor:true:search_path=pg_catalog, public, pg_temp:false",
+    "authority_write_acl": "role_permissions:DELETE:false|role_permissions:INSERT:false|role_permissions:UPDATE:false|roles:DELETE:false|roles:INSERT:false|roles:UPDATE:false|tenant_staff_memberships:UPDATE:false|tenant_staff_permission_grants:DELETE:false|tenant_staff_permission_grants:INSERT:false|tenant_staff_permission_grants:UPDATE:false|tenant_staff_security_events:INSERT:false",
+    "rls": "leads:true:true|tenant_staff_memberships:true:true|tenant_staff_permission_grants:true:true",
+    "policy_count": "9",
+    "enabled_user_trigger_count": "3",
+    "public_schema_create": "f",
+    "definer_roles": "daleel_f06scope_assigner:false:false:false|daleel_f06team01_admin_executor:false:false:false",
+    "clone_assign_function_count": "0"
+  }
+}

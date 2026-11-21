@@ -1,0 +1,202 @@
+{
+  "system_identifier": "7700716788417429547",
+  "membership": [
+    "a1111111-0000-0000-0000-00000000a004"
+  ],
+  "policy": "RESTRICTIVE:daleel_f06i02_actor_a1,daleel_f06i02_actor_a2,daleel_f06i02_actor_b1,daleel_f06i03_actor_a4",
+  "group_owned_objects": 0,
+  "before": "7a61ad70461672f3b38f4af6ff1544f2",
+  "after": "7a61ad70461672f3b38f4af6ff1544f2",
+  "fingerprint_unchanged": true,
+  "results": [
+    {
+      "id": "SETROLE-GROUP-A1",
+      "actor": "A1",
+      "rc": 3,
+      "sqlstate": "42501",
+      "output": "",
+      "expected": true,
+      "error_class": "ERROR:  42501: permission denied to set role \"daleel_tenant_runtime\""
+    },
+    {
+      "id": "SETROLE-OTHER-A1",
+      "actor": "A1",
+      "rc": 3,
+      "sqlstate": "42501",
+      "output": "",
+      "expected": true,
+      "error_class": "ERROR:  42501: permission denied to set role \"daleel_f06i02_actor_b1\""
+    },
+    {
+      "id": "SETROLE-GROUP-A2",
+      "actor": "A2",
+      "rc": 3,
+      "sqlstate": "42501",
+      "output": "",
+      "expected": true,
+      "error_class": "ERROR:  42501: permission denied to set role \"daleel_tenant_runtime\""
+    },
+    {
+      "id": "SETROLE-OTHER-A2",
+      "actor": "A2",
+      "rc": 3,
+      "sqlstate": "42501",
+      "output": "",
+      "expected": true,
+      "error_class": "ERROR:  42501: permission denied to set role \"daleel_f06i02_actor_b1\""
+    },
+    {
+      "id": "SETROLE-GROUP-B1",
+      "actor": "B1",
+      "rc": 3,
+      "sqlstate": "42501",
+      "output": "",
+      "expected": true,
+      "error_class": "ERROR:  42501: permission denied to set role \"daleel_tenant_runtime\""
+    },
+    {
+      "id": "SETROLE-OTHER-B1",
+      "actor": "B1",
+      "rc": 3,
+      "sqlstate": "42501",
+      "output": "",
+      "expected": true,
+      "error_class": "ERROR:  42501: permission denied to set role \"daleel_f06i02_actor_a1\""
+    },
+    {
+      "id": "SETROLE-GROUP-A4",
+      "actor": "A4",
+      "rc": 3,
+      "sqlstate": "42501",
+      "output": "",
+      "expected": true,
+      "error_class": "ERROR:  42501: permission denied to set role \"daleel_tenant_runtime\""
+    },
+    {
+      "id": "SETROLE-OTHER-A4",
+      "actor": "A4",
+      "rc": 3,
+      "sqlstate": "42501",
+      "output": "",
+      "expected": true,
+      "error_class": "ERROR:  42501: permission denied to set role \"daleel_f06i02_actor_b1\""
+    },
+    {
+      "id": "POSITIVE-B1",
+      "actor": "B1",
+      "rc": 0,
+      "sqlstate": null,
+      "output": "TENANT\n22222222-2222-2222-2222-222222222222\nbbbbbbb1-0000-0000-0000-000000000001\n1",
+      "expected": true,
+      "error_class": null
+    },
+    {
+      "id": "POSITIVE-A1",
+      "actor": "A1",
+      "rc": 0,
+      "sqlstate": null,
+      "output": "TENANT\n11111111-1111-1111-1111-111111111111\naaaaaaa1-0000-0000-0000-000000000001\n5",
+      "expected": true,
+      "error_class": null
+    },
+    {
+      "id": "POSITIVE-A4",
+      "actor": "A4",
+      "rc": 0,
+      "sqlstate": null,
+      "output": "TENANT\n11111111-1111-1111-1111-111111111111\naaaaaaa4-0000-0000-0000-000000000004\n5",
+      "expected": true,
+      "error_class": null
+    },
+    {
+      "id": "GUC-B-SELECT-A1",
+      "actor": "A1",
+      "rc": 0,
+      "sqlstate": null,
+      "output": "TENANT\n22222222-2222-2222-2222-222222222222\naaaaaaa1-0000-0000-0000-000000000001\n0",
+      "expected": true,
+      "error_class": null
+    },
+    {
+      "id": "GUC-B-UPDATE-A1",
+      "actor": "A1",
+      "rc": 0,
+      "sqlstate": null,
+      "output": "TENANT\n22222222-2222-2222-2222-222222222222\naaaaaaa1-0000-0000-0000-000000000001",
+      "expected": true,
+      "error_class": null
+    },
+    {
+      "id": "GUC-B-INSERT-A1",
+      "actor": "A1",
+      "rc": 3,
+      "sqlstate": "42501",
+      "output": "TENANT\n22222222-2222-2222-2222-222222222222\naaaaaaa1-0000-0000-0000-000000000001",
+      "expected": true,
+      "error_class": "ERROR:  42501: new row violates row-level security policy \"f06i02_leads_actor_tenant_boundary\" for table \"leads\""
+    },
+    {
+      "id": "GUC-B-SELECT-A4",
+      "actor": "A4",
+      "rc": 0,
+      "sqlstate": null,
+      "output": "TENANT\n22222222-2222-2222-2222-222222222222\naaaaaaa4-0000-0000-0000-000000000004\n0",
+      "expected": true,
+      "error_class": null
+    },
+    {
+      "id": "GUC-B-UPDATE-A4",
+      "actor": "A4",
+      "rc": 0,
+      "sqlstate": null,
+      "output": "TENANT\n22222222-2222-2222-2222-222222222222\naaaaaaa4-0000-0000-0000-000000000004",
+      "expected": true,
+      "error_class": null
+    },
+    {
+      "id": "GUC-B-INSERT-A4",
+      "actor": "A4",
+      "rc": 3,
+      "sqlstate": "42501",
+      "output": "TENANT\n22222222-2222-2222-2222-222222222222\naaaaaaa4-0000-0000-0000-000000000004",
+      "expected": true,
+      "error_class": "ERROR:  42501: new row violates row-level security policy \"f06i02_leads_actor_tenant_boundary\" for table \"leads\""
+    },
+    {
+      "id": "LEGIT-A1-UPDATE",
+      "actor": "A1",
+      "rc": 0,
+      "sqlstate": null,
+      "output": "TENANT\n11111111-1111-1111-1111-111111111111\naaaaaaa1-0000-0000-0000-000000000001\nc0000001-0000-0000-0000-000000000001",
+      "expected": true,
+      "error_class": null
+    },
+    {
+      "id": "LEGIT-A4-UPDATE",
+      "actor": "A4",
+      "rc": 0,
+      "sqlstate": null,
+      "output": "TENANT\n11111111-1111-1111-1111-111111111111\naaaaaaa4-0000-0000-0000-000000000004\nc0000004-0000-0000-0000-000000000004",
+      "expected": true,
+      "error_class": null
+    },
+    {
+      "id": "LEGIT-A1-INSERT",
+      "actor": "A1",
+      "rc": 0,
+      "sqlstate": null,
+      "output": "TENANT\n11111111-1111-1111-1111-111111111111\naaaaaaa1-0000-0000-0000-000000000001\nc9999999-0000-0000-0000-000000000001",
+      "expected": true,
+      "error_class": null
+    },
+    {
+      "id": "LEGIT-A4-INSERT",
+      "actor": "A4",
+      "rc": 0,
+      "sqlstate": null,
+      "output": "TENANT\n11111111-1111-1111-1111-111111111111\naaaaaaa4-0000-0000-0000-000000000004\nc9999999-0000-0000-0000-000000000004",
+      "expected": true,
+      "error_class": null
+    }
+  ]
+}

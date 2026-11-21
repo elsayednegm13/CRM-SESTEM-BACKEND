@@ -1,0 +1,26 @@
+{
+  "phase": "before",
+  "system_identifier": "7700882006031409190",
+  "fingerprint_before": "7b7f51192c2cc054bfaaa1be19a01a9d",
+  "fingerprint_after": "7b7f51192c2cc054bfaaa1be19a01a9d",
+  "persisted_attack_rows": 0,
+  "actor_privileges_insert_grant_delete_role_update_lead_update_assignment": "t|t|t|t",
+  "attack": {
+    "rc": 0,
+    "sqlstate": null,
+    "output_tail": [
+      "aaaaaaa4-0000-0000-0000-000000000004",
+      "leads.manage|ALL_TENANT",
+      "1"
+    ]
+  },
+  "authorized_shared_bootstrap": {
+    "rc": 0,
+    "sqlstate": null,
+    "output_tail": [
+      "11111111-1111-1111-1111-111111111111",
+      "aaaaaaa1-0000-0000-0000-000000000001",
+      "leads.manage|ALL_TENANT"
+    ]
+  }
+}

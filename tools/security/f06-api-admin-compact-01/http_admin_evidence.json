@@ -1,0 +1,427 @@
+{
+  "system_identifier": "7701014410365292590",
+  "baseline_fingerprint": "cb944a885ba38db061631f5addde4e1f",
+  "results": [
+    {
+      "flag": "OFF",
+      "case": "A5_LOGIN",
+      "status": 200,
+      "data": {
+        "status": "LOGIN_OK"
+      },
+      "body_keys": [
+        "data"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "ROLES_READ",
+      "status": 200,
+      "data": null,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "STAFF_READ",
+      "status": 200,
+      "data": null,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "GRANT",
+      "status": 201,
+      "data": {
+        "status": "GRANTED"
+      },
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "REPEAT_GRANT",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "REVOKE",
+      "status": 200,
+      "data": {
+        "status": "REVOKED"
+      },
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "A5_SELF",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "A5_NONDELEGABLE",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "A5_OVER_SCOPE",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "A5_B_TARGET",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "A5_SUSPENDED",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "A5_REPEAT_REVOKE",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "A1_NO_MEMBER_MANAGE",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "A2_NO_MEMBER_MANAGE",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "A4_NO_MEMBER_MANAGE",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "B1_NO_MEMBER_MANAGE",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "GUEST",
+      "status": 401,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "CSRF_MISSING",
+      "status": 419,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "OFF",
+      "case": "CROSS_HOST",
+      "status": 401,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "A5_LOGIN",
+      "status": 200,
+      "data": {
+        "status": "LOGIN_OK"
+      },
+      "body_keys": [
+        "data"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "ROLES_READ",
+      "status": 200,
+      "data": null,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "STAFF_READ",
+      "status": 200,
+      "data": null,
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "GRANT",
+      "status": 201,
+      "data": {
+        "status": "GRANTED"
+      },
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "REPEAT_GRANT",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "REVOKE",
+      "status": 200,
+      "data": {
+        "status": "REVOKED"
+      },
+      "body_keys": [
+        "data",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "A5_SELF",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "A5_NONDELEGABLE",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "A5_OVER_SCOPE",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "A5_B_TARGET",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "A5_SUSPENDED",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "A5_REPEAT_REVOKE",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "A1_NO_MEMBER_MANAGE",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "A2_NO_MEMBER_MANAGE",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "A4_NO_MEMBER_MANAGE",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "B1_NO_MEMBER_MANAGE",
+      "status": 403,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "GUEST",
+      "status": 401,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "CSRF_MISSING",
+      "status": 419,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    },
+    {
+      "flag": "ON",
+      "case": "CROSS_HOST",
+      "status": 401,
+      "data": null,
+      "body_keys": [
+        "error",
+        "meta"
+      ]
+    }
+  ],
+  "OFF": {
+    "grant": [
+      1,
+      1,
+      2,
+      1
+    ],
+    "revoke": [
+      1,
+      0,
+      3,
+      2
+    ]
+  },
+  "ON": {
+    "grant": [
+      1,
+      1,
+      2,
+      1
+    ],
+    "revoke": [
+      1,
+      0,
+      3,
+      2
+    ]
+  },
+  "missing_a5_status": 503,
+  "missing_a5_a1_leads_status": 200,
+  "final_fingerprint": "cb944a885ba38db061631f5addde4e1f"
+}

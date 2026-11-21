@@ -1,0 +1,35 @@
+{
+  "system_identifier": "7700882006031409190",
+  "membership": [
+    "daleel_f06i02_actor_a1|daleel_f06scope_actor_runtime|f|t|f",
+    "daleel_f06i02_actor_a2|daleel_f06scope_actor_runtime|f|t|f",
+    "daleel_f06i02_actor_b1|daleel_f06scope_actor_runtime|f|t|f",
+    "daleel_f06i03_actor_a4|daleel_f06scope_actor_runtime|f|t|f"
+  ],
+  "role_flags": [
+    "daleel_f06i02_actor_a1|t|f|f|f|f",
+    "daleel_f06i02_actor_a2|t|f|f|f|f",
+    "daleel_f06i02_actor_b1|t|f|f|f|f",
+    "daleel_f06i03_actor_a4|t|f|f|f|f",
+    "daleel_f06scope_actor_runtime|f|f|f|f|f",
+    "daleel_f06scope_assigner|f|f|f|f|f",
+    "daleel_f06scope_resolver|f|f|f|f|f"
+  ],
+  "actor_runtime_owned_object_count": 0,
+  "effective_acl": "f|f|f|t|f|f|f|f",
+  "leads_policies": [
+    "f06scope_leads_delete|RESTRICTIVE|{daleel_f06scope_actor_runtime}|DELETE",
+    "f06scope_leads_insert|RESTRICTIVE|{daleel_f06scope_actor_runtime}|INSERT",
+    "f06scope_leads_update|RESTRICTIVE|{daleel_f06scope_actor_runtime}|UPDATE",
+    "f06scope_leads_view|RESTRICTIVE|{daleel_f06scope_actor_runtime}|SELECT"
+  ],
+  "leads_rls_force": "t|t",
+  "functions": [
+    "f06scope_actor_claim()|daleel_f06scope_resolver|t|search_path=pg_catalog, public, pg_temp|f",
+    "f06scope_assign_lead(uuid,uuid)|daleel_f06scope_assigner|t|search_path=pg_catalog, public, pg_temp|f",
+    "f06scope_effective_scopes(text)|daleel_f06scope_resolver|t|search_path=pg_catalog, public, pg_temp|f",
+    "f06scope_insert_allowed(uuid,uuid,uuid)|daleel_f06scope_resolver|t|search_path=pg_catalog, public, pg_temp|f",
+    "f06scope_row_allowed(text,uuid,uuid,uuid)|daleel_f06scope_resolver|t|search_path=pg_catalog, public, pg_temp|f"
+  ],
+  "default_acl_count": 0
+}

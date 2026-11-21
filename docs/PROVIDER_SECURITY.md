@@ -1,0 +1,21 @@
+# Provider control-plane foundation (Control 10B)
+
+`provider_users` is a separate identity authority from tenant `users`. It has no `tenant_id`, tenant membership, or tenant RBAC role. The `/api/v1/super` routes use the `provider` server-session guard; `/api/v1/company` retains the tenant guard. Provider runtime SQL uses a separate, non-owner, non-BYPASSRLS connection with grants only on the seven provider tables and INSERT-only provider audit access. Tenant runtime cannot read provider credentials or MFA. Neither role may use the other plane's audit policy.
+
+## Sign-in and MFA
+
+The local super-admin Origin is exactly `http://localhost:3002`; production origins must be explicitly configured. Obtain the CSRF cookie from `/sanctum/csrf-cookie` and send `X-XSRF-TOKEN` with credentialed writes. A correct provider password creates a five-minute pending challenge, not an authenticated provider session. An unenrolled provider must start enrollment and confirm a TOTP before the guard logs in. Restarting enrollment replaces the unconfirmed secret. TOTP uses a 30-second period, ±1 step tolerance, and a locked, monotonically increasing last-used counter. The confirmed secret is Laravel-encrypted in PostgreSQL. Ten 128-bit recovery codes are shown once at confirmation, stored only as keyed SHA-256 hashes, and consumed once with a row lock. They are also accepted for MFA verification and step-up. Treat APP_KEY rotation as a coordinated re-enrollment/recovery-code event: it makes encrypted TOTP secrets and keyed code hashes unusable without a migration plan.
+
+Provider sessions have a four-hour absolute ceiling, independent of session garbage collection. The provider `auth_version` revokes the guard and step-up on the next request. Step-up requires the password plus a fresh TOTP or recovery code and expires after ten minutes. Session IDs rotate after password challenge, completed MFA, and logout. Sensitive responses have `private, no-store`; no factors, raw request bodies, authorization headers, or cookies are logged. The browser must keep the super-admin origin within the approved cookie/CSRF topology and use HTTPS and Secure cookies outside local development.
+
+## Capabilities and approvals
+
+The fixed provider catalog is `company.provision`, `company.recover`, `company.lifecycle.manage`, and `provider.approval.review`. Authorization reads assignments from PostgreSQL on each use, including catalog status and grant expiry. A provider capability is independent of tenant RBAC. No public provider account-creation, reset, capability-grant, or approval-write API exists in this control; disposable owner fixtures establish the proof records. Future administration of these authorities requires its own step-up, dual control, and durable audit.
+
+`ProviderApprovalService` is an internal primitive for future 10C actions. It validates action, UUID target, reason, ticket, requester capability, fresh step-up, expiry, independent reviewer capability/step-up, quorum, and revocation. `assertApprovalUsable` locks the approval in the caller's provider transaction and rechecks requester state, capability, exact action and target, quorum, rejection, and expiry. The caller must hold that transaction through its future authorized action. This control has no action executor; an approved row alone does not mutate any tenant or provision a company. Approval and its provider audit fact commit or roll back in the same PostgreSQL transaction.
+
+Provider audit facts share the Control 10A durable ledger with a distinct provider actor type, server-derived actor UUID, allowlisted provider event types, and a provider-specific RLS INSERT policy. There is no second ledger or arbitrary metadata. Production audit retention remains an owner policy decision.
+
+## Deployment boundary
+
+Inject `PROVIDER_DB_*` credentials and APP_KEY from a secret manager. The provider DB role must be non-owner, non-superuser, non-BYPASSRLS and have no tenant data grants. Keep schema/migration owner credentials out of the API process. Validate exact CORS origins, trusted proxies, HTTPS, secure cookies, DB role grants, audit RLS, time synchronization for TOTP, and rate-limit backing store before production. Local proof used an isolated PostgreSQL 16 container and file sessions; it did not deploy or provision a real provider account.

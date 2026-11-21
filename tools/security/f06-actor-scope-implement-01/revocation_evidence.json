@@ -1,0 +1,14 @@
+{
+  "system_identifier": "7700882006031409190",
+  "open_read_committed_transaction_counts": [
+    1,
+    0
+  ],
+  "fresh_statement_after_commit_count": 0,
+  "actor_rc": 0,
+  "membership_before_after": "ACTIVE|1",
+  "membership_restored": true,
+  "leads_fingerprint_before": "6dae888722a8bbd5a352f4f28d4aab01",
+  "leads_fingerprint_after": "6dae888722a8bbd5a352f4f28d4aab01",
+  "limitations": "Does not prove immediate cancellation of a running statement or credential rotation."
+}
